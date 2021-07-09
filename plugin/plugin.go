@@ -56,6 +56,9 @@ type Args struct {
 
 	// State of the deployment (optional)
 	State string `envconfig:"PLUGIN_STATE"`
+
+	// Deployment use only 1 issue instead of multiple (optional)
+	SingleIssueDeployment bool `envconfig:"PLUGIN_SINGLE_ISSUE_DEPLOYMENT"`
 }
 
 // Exec executes the plugin.

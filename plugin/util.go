@@ -14,13 +14,18 @@ import (
 // the commit details, including the commit message,
 // branch and pull request title.
 func extractIssues(args Args) []string {
+	limit := -1
+	if args.SingleIssueDeployment {
+		limit = 1
+	}
+
 	return filterUniqueIssues(regexp.MustCompile(args.Project+"\\-\\d+").FindAllString(
 		fmt.Sprintln(
 			args.Commit.Message,
 			args.PullRequest.Title,
 			args.Commit.Source,
 			args.Commit.Target,
-		), -1),
+		), limit),
 	)
 }
 
