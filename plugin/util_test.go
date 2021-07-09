@@ -9,38 +9,38 @@ import "testing"
 func TestExtractIssue(t *testing.T) {
 	tests := []struct {
 		text string
-		want string
+		want []string
 	}{
 		{
 			text: "TEST-1 this is a test",
-			want: "TEST-1",
+			want: []string{"TEST-1"},
 		},
 		{
 			text: "suffix [TEST-123]",
-			want: "TEST-123",
+			want: []string{"TEST-123"},
 		},
 		{
 			text: "[TEST-123] prefix",
-			want: "TEST-123",
+			want: []string{"TEST-123"},
 		},
 		{
 			text: "TEST-123 prefix",
-			want: "TEST-123",
+			want: []string{"TEST-123"},
 		},
 		{
 			text: "feature/TEST-123",
-			want: "TEST-123",
+			want: []string{"TEST-123"},
 		},
 		{
 			text: "no issue",
-			want: "",
+			want: []string{""},
 		},
 	}
 	for _, test := range tests {
 		var args Args
 		args.Commit.Message = test.text
 		args.Project = "TEST"
-		if got, want := extractIssue(args), test.want; got != want {
+		if got, want := extractIssues(args), test.want; got[0] != want[0] {
 			t.Errorf("Got issue number %v, want %v", got, want)
 		}
 	}

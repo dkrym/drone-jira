@@ -62,11 +62,11 @@ type Args struct {
 func Exec(ctx context.Context, args Args) error {
 	var (
 		environ  = toEnvironment(args)
-		issue    = extractIssue(args)
 		state    = toState(args)
 		version  = toVersion(args)
 		deeplink = toLink(args)
 		instance = args.Site
+		issues   = extractIssues(args)
 	)
 
 	logger := logrus.
@@ -79,13 +79,13 @@ func Exec(ctx context.Context, args Args) error {
 		WithField("state", state).
 		WithField("version", version)
 
-	if issue == "" {
+	if len(issues) == 0 {
 		logger.Debugln("cannot find issue number")
 		return errors.New("failed to extract issue number")
 	}
 
-	logger = logger.WithField("issue", issue)
-	logger.Debugln("successfully extraced issue number")
+	logger = logger.WithField("issue", issues)
+	logger.Debugln("successfully extracted issue number")
 
 	payload := Payload{
 		Deployments: []*Deployment{
@@ -95,7 +95,7 @@ func Exec(ctx context.Context, args Args) error {
 				Associations: []Association{
 					{
 						Associationtype: "issueIdOrKeys",
-						Values:          []string{issue},
+						Values:          issues,
 					},
 				},
 				Displayname: version,
@@ -105,7 +105,7 @@ func Exec(ctx context.Context, args Args) error {
 				State:       state,
 				Pipeline: JiraPipeline{
 					ID:          args.Commit.Author.Email,
-					Displayname: args.Commit.Author.Username,
+					Displayname: args.Commit.Author.Name,
 					URL:         deeplink,
 				},
 				Environment: Environment{
@@ -140,7 +140,10 @@ func Exec(ctx context.Context, args Args) error {
 	}
 
 	logger.Infoln("creating deployment")
-	return createDeployment(args, payload, token)
+	response, err := createDeployment(args, payload, token)
+	logger.Infoln(response)
+
+	return err
 }
 
 // makes an API call to create a token.
@@ -181,26 +184,31 @@ func createToken(args Args) (string, error) {
 }
 
 // makes an API call to create a deployment.
-func createDeployment(args Args, payload Payload, token string) error {
+func createDeployment(args Args, payload Payload, token string) (string, error) {
 	endpoint := fmt.Sprintf("https://api.atlassian.com/jira/deployments/0.1/cloud/%s/bulk", args.CloudID)
 	buf := new(bytes.Buffer)
 	json.NewEncoder(buf).Encode(payload)
 	req, err := http.NewRequest("POST", endpoint, buf)
 	if err != nil {
-		return err
+		return "", err
 	}
 	req.Header.Set("From", "noreply@localhost")
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer res.Body.Close()
 	if res.StatusCode > 299 {
-		return fmt.Errorf("Error code %d", res.StatusCode)
+		return "", fmt.Errorf("Error code %d", res.StatusCode)
 	}
-	return nil
+
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(b), err
 }
 
 // makes an API call to lookup the cloud ID

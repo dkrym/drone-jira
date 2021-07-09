@@ -10,18 +10,30 @@ import (
 	"strings"
 )
 
-// helper function to extract the issue number from
+// helper function to extract the issue numbers from
 // the commit details, including the commit message,
 // branch and pull request title.
-func extractIssue(args Args) string {
-	return regexp.MustCompile(args.Project + "\\-\\d+").FindString(
+func extractIssues(args Args) []string {
+	return filterUniqueIssues(regexp.MustCompile(args.Project+"\\-\\d+").FindAllString(
 		fmt.Sprintln(
 			args.Commit.Message,
 			args.PullRequest.Title,
 			args.Commit.Source,
 			args.Commit.Target,
-		),
+		), -1),
 	)
+}
+
+func filterUniqueIssues(slice []string) []string {
+	keys := make(map[string]bool)
+	list := []string{}
+	for _, entry := range slice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
 }
 
 // helper function determines the pipeline name.
