@@ -1,3 +1,6 @@
+Original plugin (https://github.com/drone/drone-jira) extracts only 1 issue number for Jira Deployment. I changed the plugin to extract multiple issues (if they exist) which is usedful when you use ```git merge --squash``` to merge multiple commits as one. All issue numbers are then sent to Jira Deployment (instead of only 1 as in the original plugin).
+
+---
 A plugin to attach build and deployment details to a Jira issue.
 
 # Building
