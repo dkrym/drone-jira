@@ -64,12 +64,13 @@ type Args struct {
 // Exec executes the plugin.
 func Exec(ctx context.Context, args Args) error {
 	var (
-		environ  = toEnvironment(args)
-		state    = toState(args)
-		version  = toVersion(args)
-		deeplink = toLink(args)
-		instance = args.Site
-		issues   = extractIssues(args)
+		environ     = toEnvironment(args)
+		state       = toState(args)
+		version     = toVersion(args)
+		deeplink    = toLink(args)
+		instance    = args.Site
+		issues      = extractIssues(args)
+		description = toDescription(args)
 	)
 
 	logger := logrus.
@@ -103,7 +104,7 @@ func Exec(ctx context.Context, args Args) error {
 				},
 				Displayname: version,
 				URL:         deeplink,
-				Description: args.Commit.Message,
+				Description: description,
 				Lastupdated: time.Now(),
 				State:       state,
 				Pipeline: JiraPipeline{

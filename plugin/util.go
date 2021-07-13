@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+const DescriptionMaxLen = 255
+
 // helper function to extract the issue numbers from
 // the commit details, including the commit message,
 // branch and pull request title.
@@ -39,6 +41,14 @@ func filterUniqueIssues(slice []string) []string {
 		}
 	}
 	return list
+}
+
+// helper function to get description [max 255 chars]
+func toDescription(args Args) string {
+	if len(args.Commit.Message) > DescriptionMaxLen {
+		return args.Commit.Message[:DescriptionMaxLen]
+	}
+	return args.Commit.Message
 }
 
 // helper function determines the pipeline name.
